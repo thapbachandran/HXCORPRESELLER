@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>𝗛𝗫 - 𝗖𝗢𝗥𝗣 𝗟𝗢𝗚𝗜𝗡</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #0077ff;
+      --secondary: #0043a8;
+      --success: #00b4d8;
+      --danger: #ff477e;
+      --light: #f0f8ff;
+      --dark: #03045e;
+      --gray: #6c757d;
+      --white: #ffffff;
+      --blue-shadow: rgba(0, 119, 255, 0.2);
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(-45deg, #f0f4ff, #e2ecff, #f8fbff, #eef4ff);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--white);
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px var(--blue-shadow);
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid #d0e1fd;
+      text-align: center;
+      position: relative;
+    }
+
+    .login-card .logo-icon {
+      font-size: 3rem;
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+
+    .login-card h2 {
+      margin-bottom: 25px;
+      color: var(--secondary);
+      font-size: 1.6rem;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--dark);
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #bde0fe;
+      border-radius: 10px;
+      outline: none;
+      font-size: 0.95rem;
+      background: var(--light);
+      transition: all 0.3s;
+    }
+
+    .input-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 119, 255, 0.15);
+      background: var(--white);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px var(--blue-shadow);
+    }
+
+    .btn-login:hover {
+      background: var(--secondary);
+      transform: translateY(-2px);
+    }
+
+    /* Toast Notification Styles */
+    #toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      font-size: 0.95rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    #toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    #toast.success { background-color: #00b4d8; color: #fff; }
+    #toast.error { background-color: #ff477e; color: #fff; }
+
+    @keyframes fadein {
+      from { bottom: 0; opacity: 0; }
+      to { bottom: 30px; opacity: 1; }
+    }
+
+    @keyframes fadeout {
+      from { bottom: 30px; opacity: 1; }
+      to { bottom: 0; opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-card">
+    <div class="logo-icon">
+      <i class="fas fa-user-shield"></i>
+    </div>
+    <h2>𝗛𝗫 - 𝗖𝗢𝗥𝗣 𝗟𝗢𝗚𝗜𝗡</h2>
+    <form id="resellerLoginForm">
+      <div class="input-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" required placeholder="Enter your email address">
+      </div>
+
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required placeholder="Enter your password">
+      </div>
+
+      <button type="submit" class="btn-login">𝗟𝗢𝗚𝗜𝗡</button>
+    </form>
+  </div>
+
+  <!-- Toast Notification Box -->
+  <div id="toast"></div>
+
+  <script type="module">
+    import { db } from "./firebase-config.js";
+    import { ref, get } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
+
+    const form = document.getElementById('resellerLoginForm');
+    const toast = document.getElementById('toast');
+
+    function showToast(message, type) {
+      toast.textContent = message;
+      toast.className = `show ${type}`;
+      setTimeout(() => {
+        toast.className = toast.className.replace('show', '');
+      }, 3000);
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const inputEmail = document.getElementById('email').value.trim();
+      const inputPassword = document.getElementById('password').value.trim();
+
+      const sanitizedEmailKey = inputEmail.replace(/\./g, '_');
+
+      try {
+        const resellerRef = ref(db, 'resellers/' + sanitizedEmailKey);
+        const snapshot = await get(resellerRef);
+
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          
+          if (data.password === inputPassword) {
+            
+            // ১. অ্যাকাউন্ট ব্লক করা আছে কিনা চেক
+            const isBlocked = data.status === 'blocked' || data.isBlocked === true;
+            if (isBlocked) {
+              showToast('Access Denied: Your account is blocked by Admin!', 'error');
+              return;
+            }
+
+            // ২. ইনভাইট সিস্টেম ব্লক করা আছে কিনা চেক
+            const isInviteBlocked = data.inviteStatus === 'blocked' || data.isInviteBlocked === true;
+            if (isInviteBlocked) {
+              showToast('Access Denied: Your invite system is blocked by Admin!', 'error');
+              return;
+            }
+
+            // Hx - corp resealer Website 
+            localStorage.setItem("loggedInReseller", inputEmail);
+            localStorage.setItem("resellerEmail", inputEmail);
+
+            showToast('Login Successful! Welcome Reseller.', 'success');
+            setTimeout(() => {
+              window.location.href = 'reseller-dashboard.html';
+            }, 1500);
+
+          } else {
+            showToast('Login Failed: Incorrect Password!', 'error');
+          }
+        } else {
+          showToast('Login Failed: Email not found!', 'error');
+        }
+
+      } catch (error) {
+        console.error(error);
+        showToast('An error occurred. Please try again.', 'error');
+      }
+    });
+  </script>
+
+</body>
+</html>
